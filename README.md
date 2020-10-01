@@ -4,6 +4,39 @@
 
 🔥 Editing tools for Clay 🔥
 
+## Notes for Unity
+
+### Versioning
+
+This package is non-compliant with semver since I think it will be helpful to
+label which version of vanilla clay-kiln our unity version was based off of.
+This relies on unity only ever pinning versions which works for our use-case.
+So the version format then is\
+{vanilla clay-kiln version}+{unity version}\
+e.g.\
+8.16.1+1\
+
+every time a change is introduced to the branch `master-unity`, the unity
+version should bump
+
+### publishing
+
+The process for publishing a new version is to
+
+1. merge all changes into the branch `master-unity` which are intended to go
+   into the new version
+2. create a new commit in the branch 'master-unity' where you bump
+   the {unity version} in both package.json and package-lock.json
+3. run `node -r esm scripts/unity-publish`
+   - I also exposed this via `npm run unity-publish` but I suggest you run it
+     directly to avoid all the npm error noise in case anything goes wrong.
+   - Be aware this script assumes a remote named `entercom` exists in your repo
+     and that you have access to push to it.
+   - If you have any questions about this script or it doesn't work to your
+     expectations, please let me (Phil) know.
+
+## Below is the rest of the vanilla clay-kiln readme
+
 [![CircleCI](https://circleci.com/gh/clay/clay-kiln.svg?style=svg)](https://circleci.com/gh/clay/clay-kiln) [![Coverage Status](https://coveralls.io/repos/nymag/clay-kiln/badge.svg?branch=master&service=github&t=C3xeVy)](https://coveralls.io/github/nymag/clay-kiln?branch=master)
 
 Powering [New York Magazine](http://nymag.com/), [Vulture](http://www.vulture.com/), [The Cut](http://www,thecut.com/), [Grub Street](http://www.grubstreet.com/).
