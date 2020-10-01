@@ -159,10 +159,9 @@ async function usingTmpDirs(cb) {
 
     await cb(tmpDirs)
   } finally {
-    log('tmpDirs: ' + JSON.stringify(tmpDirs, null, 2))
-    // if (tmpDirs) {
-    //   await del(tmpDirs)
-    // }
+    if (tmpDirs) {
+      delSync(tmpDirs)
+    }
   }
 }
 
