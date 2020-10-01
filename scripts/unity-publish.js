@@ -160,7 +160,7 @@ async function usingTmpDirs(cb) {
     await cb(tmpDirs)
   } finally {
     if (tmpDirs) {
-      delSync(tmpDirs)
+      delSync(tmpDirs, { force: true })
     }
   }
 }
