@@ -102,7 +102,9 @@ async function run() {
 
       log('tagging the version and pushing to the remote')
       await execp(
-        `git checkout master-unity-publish && git pull`,
+        'git checkout master-unity-publish'
+        + ' && git clean -fd'
+        + ' && git pull',
         { cwd: publishDir }
       )
 
