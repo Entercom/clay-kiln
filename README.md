@@ -14,7 +14,7 @@ This relies on unity only ever pinning versions which works for our use-case.
 So the version format then is\
 {vanilla clay-kiln version}+{unity version}\
 e.g.\
-8.16.1+1\
+8.16.1+1
 
 every time a change is introduced to the branch `master-unity`, the unity
 version should bump
