@@ -304,22 +304,37 @@
       },
       publishPage() {
         this.$store.dispatch('isPublishing', true).then(() => {
-          this.$store.dispatch('publishPage', this.uri)
-            .catch((e) => {
-              log.error(`Error publishing page: ${e.message}`, { action: 'publishPage' });
-              this.$store.dispatch('showSnackbar', {
-                message: 'Error publishing page',
-                action: 'Retry',
-                onActionClick: () => this.publishPage()
-              });
-              throw e;
-            })
-            .then(() => this.$store.dispatch('showSnackbar', {
-              message: 'Published Page',
-              action: 'View',
-              onActionClick: () => window.open(this.url)
-            }));
-        });
+          this.$store.dispatch('validate', this.$store).then(({ errors }) => {
+            if (errors && errors.length) {
+              this.$store.dispatch(
+                'showSnackbar',
+                'Validation failed pre-publication check. Please fix and try again.'
+              );
+              this.goToHealth();
+            } else {
+              this.$store.dispatch('publishPage', this.uri)
+                .catch((e) => {
+                  log.error(`Error publishing page: ${e.message}`, { action: 'publishPage' });
+                  this.$store.dispatch('showSnackbar', {
+                    message: 'Error publishing page',
+                    action: 'Retry',
+                    onActionClick: () => this.publishPage()
+                  });
+                  throw e;
+                })
+                .then(() => this.$store.dispatch('showSnackbar', {
+                  message: 'Published Page',
+                  action: 'View',
+                  onActionClick: () => window.open(this.url)
+                }));
+            }
+          });
+        })
+          .finally(() => {
+            if (_.get(this, '$store.state.ui.currentlyPublishing')) {
+              this.$store.dispatch('isPublishing', false);
+            }
+          });
       },
       formatDate(date) {
         return dateFormat(date, 'M/D/YY');
@@ -401,7 +416,7 @@
       },
       archivePage(archived) {
         this.$store.dispatch('startProgress');
-  
+
         return this.$store.dispatch('updatePageList', { archived, shouldPatchArchive: true })
           .then(() => {
             this.$store.dispatch('finishProgress');
@@ -410,7 +425,7 @@
               action: 'Undo',
               onActionClick: () => this.archivePage(!archived)
             });
-  
+
             return this.$store.dispatch('closeModal');
           })
           .catch((e) => {
