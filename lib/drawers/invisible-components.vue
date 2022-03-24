@@ -65,6 +65,9 @@
       openSettings(id) {
         const path = 'settings';
 
+        // If a different element is selected, the overlay form will use the
+        // wrong schema resulting in disabled fields, so unselect first.
+        this.$store.dispatch('unselect');
         this.$store.dispatch('focus', { uri: id, path });
       },
       removeComponent(id) {
