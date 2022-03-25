@@ -72,6 +72,8 @@
       openSettings(id) {
         const path = 'settings';
 
+        // Unselect to prevent the overlay form from using the wrong component's schema
+        this.$store.dispatch('unselect');
         this.$store.dispatch('focus', { uri: id, path });
       },
       removeComponent(id) {
