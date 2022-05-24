@@ -81,13 +81,15 @@
       fetchListItems() {
         const listName = this.args.list,
           lists = this.$store.state.lists,
+          smartList = this.args.smartList,
           items = _.get(lists, `${listName}.items`);
         let promise;
 
         if (items) {
           promise = Promise.resolve(items);
         } else {
-          promise = this.$store.dispatch('getList', listName).then(() => _.get(lists, `${listName}.items`));
+          const action = smartList ? 'getSmartList' : 'getList';
+          promise = this.$store.dispatch(action, listName).then(() => _.get(lists, `${listName}.items`));
         }
 
         return promise.then((listItems) => {

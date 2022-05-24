@@ -57,7 +57,6 @@
   import smartListItem from './smart-list-item.vue';
   import smartListInput from './smart-list-input.vue';
   import attachedButton from './attached-button.vue';
-  import { getItemIndex, getProp } from '../lib/lists/helpers';
   import { DynamicEvents } from './mixins';
 
   const log = logger(__filename);
@@ -198,39 +197,11 @@
         if (this.args.autocomplete && this.args.autocomplete.allowRemove) {
           const listName = this.args.autocomplete.list;
 
-          return this.$store.dispatch('patchList', {
+          return this.$store.dispatch('removeSmartListItem', {
             listName: listName,
-            fn: this.handleRemoveItem
+            item: removedItem,
+            itemKeys: [{text: 'value'}, 'count']
           });
-        }
-      },
-      /**
-       * Handles remove item from list
-       * @param {Array.<Object>} items
-       */
-      handleRemoveItem(items = []) {
-        // validate that the list has items with these properties
-        const stringProperty = getProp(items, 'text'),
-          countProperty = getProp(items, 'count');
-
-        if (stringProperty && countProperty) {
-          const itemIndex = getItemIndex(items, (this.removedItem || {}).text, 'text');
-
-          if (itemIndex !== -1 && items[itemIndex][countProperty]) {
-            // decrease count if the item already exists in the list and count is more than 0
-
-            const old = items[itemIndex],
-              updated = _.cloneDeep(old);
-
-            updated[countProperty]--;
-
-            this.removedItem = {};
-
-            return {
-              add: [updated],
-              remove: [old]
-            };
-          }
         }
       },
       addItem(newItem) {
@@ -241,57 +212,10 @@
         if (this.args.autocomplete && this.args.autocomplete.allowCreate) {
           const listName = this.args.autocomplete.list;
 
-          return this.$store.dispatch('patchList', {
+          return this.$store.dispatch('addSmartListItem', {
             listName: listName,
-            fn: (items) => {
-              const patch = {
-                  add: [],
-                  remove: []
-                },
-                // validate that the list has items with these properties
-                stringProperty = getProp(items, 'text'),
-                countProperty = getProp(items, 'count');
-
-              if (stringProperty && countProperty) {
-                const itemIndex = getItemIndex(items, newItem.text, 'text');
-
-                if (itemIndex !== -1) {
-                  // remove the old, add new object with new count
-                  const old = items[itemIndex],
-                    updated = _.cloneDeep(old);
-
-                  patch.remove.push(old);
-
-                  // increase count if the item already exists in the list
-                  updated[countProperty]++;
-                  patch.add.push(updated);
-
-                  return patch;
-                } else {
-                  // add item to the list
-                  _.set(newItem, countProperty, 1);
-
-                  patch.add.push(newItem);
-
-                  return patch;
-                }
-              } else if (_.isString(_.head(items))) {
-                // if the list is just an array of strings, just add the string property
-
-                if (getItemIndex(items, newItem.text) === -1) {
-                  patch.add.push(newItem.text);
-
-                  return patch;
-                }
-              } else if (items.length === 0) {
-                log.warn('The list is empty, unable to determine data structure. Adding item with default data structure.', { action: 'adding item to a list' });
-                _.set(newItem, 'count', 1);
-
-                patch.add.push(newItem);
-
-                return patch;
-              }
-            }
+            item: newItem,
+            itemKeys: [{text: 'value'}, 'count']
           });
         }
       },
