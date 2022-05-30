@@ -200,7 +200,7 @@
           return this.$store.dispatch('removeSmartListItem', {
             listName: listName,
             item: removedItem,
-            itemKeys: [{text: 'value'}, 'count']
+            itemKeys: [{ text: 'value' }, 'count']
           });
         }
       },
@@ -215,7 +215,7 @@
           return this.$store.dispatch('addSmartListItem', {
             listName: listName,
             item: newItem,
-            itemKeys: [{text: 'value'}, 'count']
+            itemKeys: [{ text: 'value' }, 'count']
           });
         }
       },
