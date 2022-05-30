@@ -19,6 +19,10 @@
   import { getItemIndex, getProp } from '../lib/lists/helpers';
   import Fuse from 'fuse.js';
 
+  const MINIMUM_LENGTH_TO_MATCH = 2;
+  const MAXIMUM_MATCHES = 20;
+  const SMART_LIST_FETCH_DEBOUNCE = 500;
+
   export default {
     props: ['args', 'select', 'query', 'focusIndex', 'updateFocusIndex', 'updateMatches', 'unselect', 'disabled'],
     data() {
@@ -31,7 +35,7 @@
     },
     computed: {
       showMatches() {
-        return this.query.length >= 2 && this.matches.length;
+        return this.query.length >= MINIMUM_LENGTH_TO_MATCH && this.matches.length;
       },
       matches() {
         const query = this.query || '';
@@ -42,10 +46,12 @@
           const elements = new Fuse(this.listItems, { threshold: 0.4 }).search(query);
 
           matches = elements.slice(0, 10).map((el) => this.listItems[el]);
+        } else if (this.args.smartList) {
+          matches = _.take(this.listItems, MAXIMUM_MATCHES);
         } else {
           matches = _.take(_.filter(this.listItems, (option) => {
             return _.includes(option.toLowerCase(), query.toLowerCase());
-          }), 20);
+          }), MAXIMUM_MATCHES);
         }
 
         this.updateMatches(matches);
@@ -84,6 +90,12 @@
           // when matches change, potentially resize the form
           this.$root.$emit('resize-form', pixelLength);
         }
+      },
+      query() {
+        if (this.args.smartList) {
+          this.listItems = [];
+          this.debouncedFetchListItems();
+        }
       }
     },
     methods: {
@@ -94,11 +106,15 @@
           items = _.get(lists, `${listName}.items`);
         let promise;
 
-        if (items) {
+        if (smartList) {
+          if ((this.query || '').length < MINIMUM_LENGTH_TO_MATCH) {
+            return;
+          }
+          promise = this.$store.dispatch('getSmartList', { listName, query: this.query }).then(() => _.get(lists, `${listName}.items`));
+        } else if (items) {
           promise = Promise.resolve(items);
         } else {
-          const action = smartList ? 'getSmartList' : 'getList';
-          promise = this.$store.dispatch(action, listName).then(() => _.get(lists, `${listName}.items`));
+          promise = this.$store.dispatch('getList', listName).then(() => _.get(lists, `${listName}.items`));
         }
 
         return promise.then((listItems) => {
@@ -123,8 +139,13 @@
         }).then(list => this.listItems = _.map(list, item => _.isObject(item) ? item.text : item));
       }
     },
+    created() {
+      this.debouncedFetchListItems = _.debounce(() => this.fetchListItems(), SMART_LIST_FETCH_DEBOUNCE);
+    },
     mounted() {
-      this.fetchListItems();
+      if (!this.args.smartList) {
+        this.fetchListItems();
+      }
     },
     components: {
       item
