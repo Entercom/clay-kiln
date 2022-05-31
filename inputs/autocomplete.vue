@@ -105,7 +105,7 @@
           if ((this.query || '').length < MINIMUM_LENGTH_TO_MATCH) {
             return;
           }
-          promise = this.$store.dispatch('getSmartList', { listName, query: this.query }).then(() => _.get(lists, `${listName}.items`));
+          promise = this.$store.dispatch('getSmartList', { listName, query: this.query, size: MAXIMUM_MATCHES }).then(() => _.get(lists, `${listName}.items`));
         } else if (items) {
           promise = Promise.resolve(items);
         } else {
