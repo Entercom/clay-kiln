@@ -1,13 +1,13 @@
 {
   "name": "clay-kiln",
-  "version": "10.1.0+7",
+  "version": "10.1.0+8",
   "description": "Editor tools for Clay",
   "template": "template.handlebars",
   "scripts": {
-    "lint": "eslint --quiet --ext .js,.vue edit.js view.js view-public.js directives inputs lib test",
-    "lint:warnings": "eslint --ext .js,.vue edit.js view.js view-public.js directives inputs lib test",
-    "lint:fix": "eslint --fix --ext .js,.vue edit.js view.js view-public.js directives inputs lib test",
-    "lint:stats": "eslint --format node_modules/eslint-stats/byErrorandWarning.js --ext .js,.vue edit.js view.js view-public.js directives inputs lib test",
+    "lint": "eslint --quiet --ext .js,.vue view.js view-public.js directives inputs lib test",
+    "lint:warnings": "eslint --ext .js,.vue view.js view-public.js directives inputs lib test",
+    "lint:fix": "eslint --fix --ext .js,.vue view.js view-public.js directives inputs lib test",
+    "lint:stats": "eslint --format node_modules/eslint-stats/byErrorandWarning.js --ext .js,.vue view.js view-public.js directives inputs lib test",
     "jest": "jest",
     "test": "npm run lint && BABEL_ENV=test npm run jest -- --coverage --no-cache",
     "test-local": "BABEL_ENV=test npm run jest -- --watch",
@@ -176,8 +176,5 @@
     "webpack-cli": "^5.1.4",
     "webpack-merge": "5.10.0",
     "whatwg-fetch": "^2.0.3"
-  },
-  "peerDependencies": {
-    "amphora-search": "https://github.com/entercom/amphora-search#v8.0.0-1"
   }
 }
