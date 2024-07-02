@@ -152,7 +152,7 @@
     "rimraf": "^2.6.2",
     "routable": "0.0.5",
     "sanitize-html": "^1.14.1",
-    "sass-loader": "^7.0.0",
+    "sass-loader": "^7.3.1",
     "set-dom": "^7.4.5",
     "snarkdown": "^1.2.2",
     "sortablejs": "^1.8.1",
