@@ -4,9 +4,7 @@ const path = require('path'),
   HtmlWebpackPlugin = require('html-webpack-plugin'),
   { CleanWebpackPlugin } = require('clean-webpack-plugin'),
   LodashModuleReplacementPlugin = require('lodash-webpack-plugin'),
-  OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
-  cssnano = require('cssnano'),
-  prod = process.argv.indexOf('production') !== -1,
+  CssMinimizerPlugin = require('css-minimizer-webpack-plugin'),
   TerserPlugin = require('terser-webpack-plugin'),
   kilnVersion = require('./package.json').version;
 
@@ -25,24 +23,21 @@ let plugins = [
     filename: 'dist/clay-kiln-[name].css'
   }),
   new LodashModuleReplacementPlugin({
-    shorthands: true, // allow _.map(collection, prop)
-    cloning: true, // used by edit
-    caching: true, // cache _.cloneDeep, etc
-    collections: true, // allow objects in collection methods
-    deburring: true, // remove diacritical marks
-    unicode: true, // support unicode
-    memoizing: true, // used by cache
-    coercions: true, // allow coercions
-    flattening: true, // allow flattening methods
-    paths: true // allow deep _.get, _.set, _.has
-    // note: we're explicitly not allowing chaining or currying
+    shorthands: true,
+    cloning: true,
+    caching: true,
+    collections: true,
+    deburring: true,
+    unicode: true,
+    memoizing: true,
+    coercions: true,
+    flattening: true,
+    paths: true
   }),
   new webpack.DefinePlugin({
-    'process.env': {
-      KILN_VERSION: `"${kilnVersion}"`,
-      NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
-      LOG: '"trace"'
-    }
+    'process.env.KILN_VERSION': JSON.stringify(kilnVersion),
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'process.env.LOG': '"trace"'
   }),
   new CleanWebpackPlugin(),
   new HtmlWebpackPlugin({
@@ -50,34 +45,19 @@ let plugins = [
   }),
   new MyCompilationPlugin(),
   new webpack.optimize.ModuleConcatenationPlugin(),
-  new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/) // some dependency (chrono-node) is using moment.js (allow that, but make them drop their 300kB of locales)
+  new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/)
 ];
 
 if (prod) {
-  plugins = plugins.concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
-      }
-    }),
-
-    new OptimizeCSSAssetsPlugin({
-      cssProcessor: cssnano,
-      cssProcessorOptions: {
-        discardComments: {
-          removeAll: true
-        },
-        safe: true // run cssnano in safe mode
-      },
-      canPrint: false
-    })
-  ]);
+  plugins.push(new webpack.DefinePlugin({
+    'process.env.NODE_ENV': '"production"'
+  }));
 }
 
 module.exports = {
   target: 'web',
   node: {
-    __filename: true, // actually expand filenames, used for logging
+    __filename: true,
     __dirname: true
   },
   entry: {
@@ -86,83 +66,71 @@ module.exports = {
     'view-public': './view-public.js'
   },
   output: {
-    path: __dirname,
+    path: path.resolve(__dirname, 'dist'),
     filename: 'dist/clay-kiln-[name].js'
   },
   module: {
-    rules: [{
-      // todo: remove vue-unit (and update vue-unit dep) once vue-unit hits 0.3.0
-      test: /node_modules\/(@tom-kitchin\/vue-unit|keen-ui|striptags|clayutils)\//,
-      loader: 'babel-loader'
-    }, {
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader'
-    }, {
-      test: /\.scss|.css$/,
-      use: [
-        MiniCssExtractPlugin.loader,
-        'css-loader',
-        'postcss-loader',
-        'sass-loader']
-    }, {
-      test: /\.svg$/,
-      use: 'raw-loader'
-    }, {
-      test: /\.vue$/,
-      loader: 'vue-loader',
-      options: {
-        esModule: false, // todo: enable this when we can use it with keenUI
-        loaders: {
-          css: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-            'postcss-loader'
-          ],
-          sass: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-            'postcss-loader',
-            'sass-loader?data=@import "styleguide/keen-variables.scss";'
-          ],
-          scss: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-            'postcss-loader',
-            'sass-loader?data=@import "styleguide/keen-variables.scss";'
-          ]
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: 'babel-loader'
+      },
+      {
+        test: /\.scss$|\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'postcss-loader',
+          'sass-loader'
+        ]
+      },
+      {
+        test: /\.svg$/,
+        use: 'raw-loader'
+      },
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader',
+        options: {
+          esModule: false,
+          extractCSS: true,
+          loaders: {
+            css: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
+            sass: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";'],
+            scss: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";']
+          }
         }
       }
-    }]
+    ]
   },
   optimization: {
     minimize: true,
-    minimizer: [new TerserPlugin({
-      terserOptions: {
-        // Terser options here
-        compress: {
-          drop_console: true // Example option: removes console logs
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            drop_console: true
+          }
         }
-      }
-    })]
+      }),
+      new CssMinimizerPlugin({
+        minimizerOptions: {
+          preset: [
+            'default',
+            {
+              discardComments: { removeAll: true }
+            }
+          ]
+        }
+      })
+    ]
   },
-  plugins: [
-    new MiniCssExtractPlugin({
-      filename: '[name].css',
-      chunkFilename: '[id].css'
-    })
-  ],
+  plugins: plugins,
   resolve: {
-
-    /*
-     * note: when importing vue components, you don't have to specify .vue
-     * also, when importing keen-ui components, do so as `keen/UiComponentName`,
-     * so they get imported correctly when testing
-     */
     extensions: ['.js', '.json', '.vue'],
     alias: {
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     }
-  },
-  plugins
+  }
 };
