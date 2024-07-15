@@ -1,17 +1,28 @@
 const path = require('path'),
-  ExtractTextPlugin = require('extract-text-webpack-plugin'),
-  docs = new ExtractTextPlugin('docs/inputs.md'),
-  styles = new ExtractTextPlugin('dist/clay-kiln-[name].css'),
+  MiniCssExtractPlugin = require('mini-css-extract-plugin'),
   webpack = require('webpack'),
+  HtmlWebpackPlugin = require('html-webpack-plugin'),
+  { CleanWebpackPlugin } = require('clean-webpack-plugin'),
   LodashModuleReplacementPlugin = require('lodash-webpack-plugin'),
   OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
   cssnano = require('cssnano'),
   prod = process.argv.indexOf('-p') !== -1,
   kilnVersion = require('./package.json').version;
 
+class MyCompilationPlugin {
+  apply(compiler) {
+    compiler.hooks.compilation.tap('MyCompilationPlugin', (compilation) => {
+      compilation.hooks.optimize.tap('MyCompilationPlugin', () => {
+        console.log('Optimizations are happening now!');
+      });
+    });
+  }
+}
+
 let plugins = [
-  styles,
-  docs,
+  new MiniCssExtractPlugin({
+    filename: 'dist/clay-kiln-[name].css'
+  }),
   new LodashModuleReplacementPlugin({
     shorthands: true, // allow _.map(collection, prop)
     cloning: true, // used by edit
@@ -22,15 +33,21 @@ let plugins = [
     memoizing: true, // used by cache
     coercions: true, // allow coercions
     flattening: true, // allow flattening methods
-    paths: true, // allow deep _.get, _.set, _.has
+    paths: true // allow deep _.get, _.set, _.has
     // note: we're explicitly not allowing chaining or currying
   }),
   new webpack.DefinePlugin({
     'process.env': {
       KILN_VERSION: `"${kilnVersion}"`,
+      NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
       LOG: '"trace"'
     }
   }),
+  new CleanWebpackPlugin(),
+  new HtmlWebpackPlugin({
+    template: './src/index.html'
+  }),
+  new MyCompilationPlugin(),
   new webpack.optimize.ModuleConcatenationPlugin(),
   new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/) // some dependency (chrono-node) is using moment.js (allow that, but make them drop their 300kB of locales)
 ];
@@ -66,7 +83,7 @@ if (prod) {
       cssProcessor: cssnano,
       cssProcessorOptions: {
         discardComments: {
-          removeAll: true,
+          removeAll: true
         },
         safe: true // run cssnano in safe mode
       },
@@ -101,10 +118,11 @@ module.exports = {
       loader: 'babel-loader'
     }, {
       test: /\.scss|.css$/,
-      use: styles.extract({
-        fallback: 'style-loader',
-        use: ['css-loader', 'postcss-loader', 'sass-loader']
-      })
+      use: [
+        MiniCssExtractPlugin.loader,
+        'css-loader',
+        'postcss-loader',
+        'sass-loader']
     }, {
       test: /\.svg$/,
       use: 'raw-loader'
@@ -113,33 +131,45 @@ module.exports = {
       loader: 'vue-loader',
       options: {
         esModule: false, // todo: enable this when we can use it with keenUI
-        extractCSS: true,
         loaders: {
-          css: styles.extract({
-            fallback: 'style-loader',
-            use: ['css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";']
-          }),
-          sass: styles.extract({
-            fallback: 'style-loader',
-            use: ['css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";']
-          }),
-          scss: styles.extract({
-            fallback: 'style-loader',
-            use: ['css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";']
-          }),
-          docs: docs.extract('raw-loader')
+          css: [
+            MiniCssExtractPlugin.loader,
+            'css-loader',
+            'postcss-loader'
+          ],
+          sass: [
+            MiniCssExtractPlugin.loader,
+            'css-loader',
+            'postcss-loader',
+            'sass-loader?data=@import "styleguide/keen-variables.scss";'
+          ],
+          scss: [
+            MiniCssExtractPlugin.loader,
+            'css-loader',
+            'postcss-loader',
+            'sass-loader?data=@import "styleguide/keen-variables.scss";'
+          ]
         }
       }
     }]
   },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+      chunkFilename: '[id].css'
+    })
+  ],
   resolve: {
-    // note: when importing vue components, you don't have to specify .vue
-    // also, when importing keen-ui components, do so as `keen/UiComponentName`,
-    // so they get imported correctly when testing
+
+    /*
+     * note: when importing vue components, you don't have to specify .vue
+     * also, when importing keen-ui components, do so as `keen/UiComponentName`,
+     * so they get imported correctly when testing
+     */
     extensions: ['.js', '.json', '.vue'],
     alias: {
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     }
   },
-  plugins: plugins
+  plugins
 };
