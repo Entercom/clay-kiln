@@ -6,6 +6,7 @@ const path = require('path'),
   LodashModuleReplacementPlugin = require('lodash-webpack-plugin'),
   CssMinimizerPlugin = require('css-minimizer-webpack-plugin'),
   TerserPlugin = require('terser-webpack-plugin'),
+  prod = process.argv.indexOf('production') !== -1,
   kilnVersion = require('./package.json').version;
 
 class MyCompilationPlugin {
@@ -18,7 +19,7 @@ class MyCompilationPlugin {
   }
 }
 
-let plugins = [
+const plugins = [
   new MiniCssExtractPlugin({
     filename: 'dist/clay-kiln-[name].css'
   }),
@@ -126,7 +127,7 @@ module.exports = {
       })
     ]
   },
-  plugins: plugins,
+  plugins,
   resolve: {
     extensions: ['.js', '.json', '.vue'],
     alias: {
