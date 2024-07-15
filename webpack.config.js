@@ -6,7 +6,7 @@ const path = require('path'),
   LodashModuleReplacementPlugin = require('lodash-webpack-plugin'),
   OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
   cssnano = require('cssnano'),
-  prod = process.argv.indexOf('-p') !== -1,
+  prod = process.argv.indexOf('production') !== -1,
   kilnVersion = require('./package.json').version;
 
 class MyCompilationPlugin {

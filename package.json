@@ -12,9 +12,9 @@
     "test": "npm run lint && BABEL_ENV=test npm run jest -- --coverage --no-cache",
     "test-local": "BABEL_ENV=test npm run jest -- --watch",
     "build": "BABEL_ENV=build webpack",
-    "build-production": "BABEL_ENV=build webpack -p",
+    "build-production": "BABEL_ENV=build webpack --mode production",
     "watch": "BABEL_ENV=build webpack -w",
-    "prepublishOnly": "BABEL_ENV=build webpack -p && npm run generate-actions",
+    "prepublishOnly": "BABEL_ENV=build webpack --mode production && npm run generate-actions",
     "generate-actions": "./node_modules/.bin/jsdoc2md --files lib/**/actions.js > docs/vuex-actions.md",
     "unity-publish": "node -r esm scripts/unity-publish.js",
     "release": "./.circleci/scripts/release.sh"
