@@ -98,6 +98,14 @@ module.exports = {
         use: 'raw-loader'
       },
       {
+        test: /\.html$/,
+        loader: 'html-loader'
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: 'asset/resource'
+      },
+      {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
