@@ -6,6 +6,7 @@ const path = require('path'),
   LodashModuleReplacementPlugin = require('lodash-webpack-plugin'),
   CssMinimizerPlugin = require('css-minimizer-webpack-plugin'),
   TerserPlugin = require('terser-webpack-plugin'),
+    { VueLoaderPlugin } = require('vue-loader'),
   prod = process.argv.indexOf('production') !== -1,
   kilnVersion = require('./package.json').version;
 
@@ -23,6 +24,7 @@ const plugins = [
   new MiniCssExtractPlugin({
     filename: 'dist/clay-kiln-[name].css'
   }),
+  new VueLoaderPlugin(),
   new LodashModuleReplacementPlugin({
     shorthands: true,
     cloning: true,
@@ -137,6 +139,9 @@ module.exports = {
     extensions: ['.js', '.json', '.vue'],
     alias: {
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
+    },
+    fallback: {
+      path: require.resolve('path-browserify')  // Add this line
     }
   }
 };
