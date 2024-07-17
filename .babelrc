@@ -1,19 +1,25 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "targets": {
-        "browsers": ["last 2 versions"],
-        "uglify": true
+        "browsers": ["last 2 versions"]
       },
-      "useBuiltIns": true
+      "useBuiltIns": "usage",
+      "corejs": 3
     }]
   ],
   "env": {
     "test": {
-      "plugins": ["transform-es2015-modules-commonjs", "transform-object-rest-spread"]
+      "plugins": [
+        "@babel/plugin-transform-modules-commonjs",
+        "@babel/plugin-transform-object-rest-spread"
+      ]
     },
     "build": {
-      "plugins": ["transform-object-rest-spread", "lodash"]
+      "plugins": [
+        "@babel/plugin-transform-object-rest-spread",
+        "lodash"
+      ]
     }
   }
 }
