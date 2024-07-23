@@ -1,14 +1,14 @@
-const path = require('path'),
-  MiniCssExtractPlugin = require('mini-css-extract-plugin'),
-  webpack = require('webpack'),
-  HtmlWebpackPlugin = require('html-webpack-plugin'),
-  { CleanWebpackPlugin } = require('clean-webpack-plugin'),
-  LodashModuleReplacementPlugin = require('lodash-webpack-plugin'),
-  CssMinimizerPlugin = require('css-minimizer-webpack-plugin'),
-  TerserPlugin = require('terser-webpack-plugin'),
-    { VueLoaderPlugin } = require('vue-loader'),
-  prod = process.argv.indexOf('production') !== -1,
-  kilnVersion = require('./package.json').version;
+const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const { VueLoaderPlugin } = require('vue-loader');
+const prod = process.argv.indexOf('production') !== -1;
+const kilnVersion = require('./package.json').version;
 
 class MyCompilationPlugin {
   apply(compiler) {
@@ -42,7 +42,6 @@ const plugins = [
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     'process.env.LOG': '"trace"'
   }),
-
   new CleanWebpackPlugin(),
   new HtmlWebpackPlugin(),
   new MyCompilationPlugin(),
@@ -76,69 +75,47 @@ module.exports = {
     filename: 'dist/clay-kiln-[name].js'
   },
   module: {
-    rules: [  {
-      test: /\.vue$/,
-      loader: 'vue-loader',
-      options: {
-        loaders: {
-          css: ['vue-style-loader', 'css-loader'],
-          scss: ['vue-style-loader', 'css-loader', 'sass-loader'],
-          i18n: '@kazupon/vue-i18n-loader'
-        }
-      }
-    },
+    rules: [
       {
-      test: /\.pug$/,
-      loader: 'pug-plain-loader'
-    },
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      },
+      {
+        test: /\.pug$/,
+        loader: 'pug-plain-loader'
+      },
       {
         test: /\.js$|jsx/,
         exclude: /node_modules/,
-        use:{
+        use: {
           loader: 'babel-loader',
-          options:{
-            presets:['@babel/preset-env']
+          options: {
+            presets: ['@babel/preset-env']
           }
         }
       },
       {
-        test: /\.scss$|\.sass$/,
-        use: [
-          'vue-style-loader',
-          'css-loader',
-          'sass-loader'
-        ]
-      },
-      {
-        test: /\.sass$/,
-        use: [
-          'vue-style-loader',
-          'css-loader',
-          'sass-loader'
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [
-          'vue-style-loader',
-          'css-loader'
-        ]
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'postcss-loader',
-          'sass-loader'
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'postcss-loader'
+        test: /\.(sa|sc|c)ss$/,
+        oneOf: [
+          {
+            resourceQuery: /module/,
+            use: [
+              'vue-style-loader',
+              {
+                loader: 'css-loader',
+                options: { modules: true }
+              },
+              'sass-loader'
+            ]
+          },
+          {
+            use: [
+              MiniCssExtractPlugin.loader,
+              'css-loader',
+              'postcss-loader',
+              'sass-loader'
+            ]
+          }
         ]
       },
       {
@@ -168,7 +145,7 @@ module.exports = {
     splitChunks: {
       chunks: 'all',
     },
-    minimize: false,
+    minimize: prod,
     minimizer: [
       new TerserPlugin({
         terserOptions: {
@@ -197,8 +174,7 @@ module.exports = {
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
-      path: require.resolve('path-browserify')  // Add this line
-
+      path: require.resolve('path-browserify')
     }
   }
 };
