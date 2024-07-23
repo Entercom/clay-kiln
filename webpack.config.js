@@ -42,12 +42,15 @@ const plugins = [
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     'process.env.LOG': '"trace"'
   }),
+
   new CleanWebpackPlugin(),
-  new HtmlWebpackPlugin({
-    template: './src/index.html'
-  }),
+  new HtmlWebpackPlugin(),
   new MyCompilationPlugin(),
   new webpack.optimize.ModuleConcatenationPlugin(),
+  new webpack.IgnorePlugin({
+    resourceRegExp: /LICENSE|README\.md$/,
+    contextRegExp: /clay-log/
+  }),
   new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/)
 ];
 
@@ -73,9 +76,23 @@ module.exports = {
     filename: 'dist/clay-kiln-[name].js'
   },
   module: {
-    rules: [
+    rules: [  {
+      test: /\.vue$/,
+      loader: 'vue-loader',
+      options: {
+        loaders: {
+          css: ['vue-style-loader', 'css-loader'],
+          scss: ['vue-style-loader', 'css-loader', 'sass-loader'],
+          i18n: '@kazupon/vue-i18n-loader'
+        }
+      }
+    },
       {
-        test: /\.js$/,
+      test: /\.pug$/,
+      loader: 'pug-plain-loader'
+    },
+      {
+        test: /\.js$|jsx/,
         exclude: /node_modules/,
         use:{
           loader: 'babel-loader',
@@ -85,7 +102,22 @@ module.exports = {
         }
       },
       {
-        test: /\.scss$|\.css$/,
+        test: /\.scss$|\.sass$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'sass-loader'
+        ]
+      },
+      {
+        test: /\.css$/,
+        use: [
+          'vue-style-loader',
+          'css-loader'
+        ]
+      },
+      {
+        test: /\.scss$/,
         use: [
           MiniCssExtractPlugin.loader,
           'css-loader',
@@ -94,34 +126,41 @@ module.exports = {
         ]
       },
       {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'postcss-loader'
+        ]
+      },
+      {
         test: /\.svg$/,
         use: 'raw-loader'
       },
       {
+        test: /\.info$/,
+        loader: 'ignore-loader'
+      },
+      {
         test: /\.html$/,
-        loader: 'html-loader'
+        use: [{
+          loader: 'html-loader',
+          options: {
+            minimize: true
+          }
+        }]
       },
       {
         test: /\.(png|jpe?g|gif|svg)$/i,
         type: 'asset/resource'
-      },
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader',
-        options: {
-          esModule: false,
-          extractCSS: true,
-          loaders: {
-            css: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
-            sass: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";'],
-            scss: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader?data=@import "styleguide/keen-variables.scss";']
-          }
-        }
       }
     ]
   },
   optimization: {
-    minimize: true,
+    splitChunks: {
+      chunks: 'all',
+    },
+    minimize: false,
     minimizer: [
       new TerserPlugin({
         terserOptions: {
@@ -146,10 +185,12 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json', '.vue'],
     alias: {
+      'vue$': 'vue/dist/vue.esm.js',
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
       path: require.resolve('path-browserify')  // Add this line
+
     }
   }
 };
