@@ -7,6 +7,8 @@ const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+
 const prod = process.argv.indexOf('production') !== -1;
 const kilnVersion = require('./package.json').version;
 
@@ -22,9 +24,11 @@ class MyCompilationPlugin {
 
 const plugins = [
   new MiniCssExtractPlugin({
-    filename: 'dist/clay-kiln-[name].css'
+    filename: 'dist/clay-kiln-[name].css',
+    ignoreOrder: true,
   }),
   new VueLoaderPlugin(),
+  new NodePolyfillPlugin(),
   new LodashModuleReplacementPlugin({
     shorthands: true,
     cloning: true,
@@ -71,6 +75,7 @@ module.exports = {
     'view-public': './view-public.js'
   },
   output: {
+    asyncChunks: true,
     path: path.resolve(__dirname, 'dist'),
     filename: 'dist/clay-kiln-[name].js'
   },
@@ -113,7 +118,13 @@ module.exports = {
               MiniCssExtractPlugin.loader,
               'css-loader',
               'postcss-loader',
-              'sass-loader'
+              {
+                loader: 'sass-loader',
+                options: {
+                  sourceMap: false,
+                  additionalData: '@import "./styleguide/keen-variables.scss";'
+                }
+              }
             ]
           }
         ]
@@ -143,7 +154,7 @@ module.exports = {
   },
   optimization: {
     splitChunks: {
-      chunks: 'all',
+      chunks: 'all'
     },
     minimize: prod,
     minimizer: [
@@ -170,11 +181,39 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json', '.vue'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js',
+      vue$: 'vue/dist/vue.esm.js',
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
-      path: require.resolve('path-browserify')
+      worker_threads: false,
+      module: false,
+      fs: false,
+      net: false,
+      tls: false,
+      zlib: require.resolve('browserify-zlib'),
+      path: require.resolve('path-browserify'),
+      http: require.resolve('stream-http'),
+      https: require.resolve('https-browserify'),
+      stream: require.resolve('stream-browserify'),
+      crypto: require.resolve('crypto-browserify'),
+      path: require.resolve('path-browserify'),
+      domain: require.resolve('domain-browser'),
+      console: require.resolve('console-browserify'),
+      fs: false,
+      path: false,
+      zlib: false,
+      http: false,
+      https: false,
+      net: false,
+      tls: false,
+      child_process: false,
+      readline: false,
+      stream: false,
+      util: false,
+      async_hooks: false,
+      worker_threads: false,
+      module: false,
+      os: false
     }
   }
 };
