@@ -73,7 +73,7 @@ module.exports = {
     'view-public': './view-public.js'
   },
   output: {
-    path: path.resolve(__dirname),
+    path: path.resolve(__dirname, './dist'),
     filename: 'dist/clay-kiln-[name].js'
   },
   module: {
