@@ -39,7 +39,9 @@ const plugins = [
   }),
   new webpack.DefinePlugin({
     'process.env.KILN_VERSION': JSON.stringify(kilnVersion),
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'process.env.NODE_ENV': JSON.stringify(
+      process.env.NODE_ENV || 'production',
+    ),
     'process.env.LOG': '"trace"'
   }),
   new CleanWebpackPlugin(),
@@ -60,7 +62,7 @@ if (prod) {
 }
 
 module.exports = {
-  target: 'web',
+  target: 'node',
   node: {
     __filename: true,
     __dirname: true
@@ -143,7 +145,7 @@ module.exports = {
   },
   optimization: {
     splitChunks: {
-      chunks: 'all',
+      chunks: 'all'
     },
     minimize: prod,
     minimizer: [
@@ -170,7 +172,7 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json', '.vue'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js',
+      vue$: 'vue/dist/vue.esm.js',
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
