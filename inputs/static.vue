@@ -36,6 +36,7 @@
   <style lang="sass">
     @import '../styleguide/colors';
     @import '../styleguide/typography';
+    @import '../styleguide/keen-variables';
 
     .static-input *::selection {
       background-color: $text-selection;
