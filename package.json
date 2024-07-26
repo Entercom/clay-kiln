@@ -1,6 +1,6 @@
 {
   "name": "clay-kiln",
-  "version": "10.1.0+13",
+  "version": "10.1.0+14",
   "description": "Editor tools for Clay",
   "template": "template.handlebars",
   "scripts": {
@@ -87,8 +87,6 @@
   "homepage": "https://github.com/clay/clay-kiln",
   "dependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.24.8",
-    "amphora": "8.4.1",
-    "amphora-search": "8.0.0",
     "clayhandlebars": "^5.0.1",
     "consolidate": "^1.0.4",
     "glob": "^11.0.0",
