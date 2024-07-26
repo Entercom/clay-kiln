@@ -1,4 +1,3 @@
-const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -7,6 +6,8 @@ const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
+const { resolve } = require('path');
+
 const prod = process.argv.indexOf('production') !== -1;
 const kilnVersion = require('./package.json').version;
 
@@ -73,7 +74,7 @@ module.exports = {
     'view-public': './view-public.js'
   },
   output: {
-    path: path.resolve(__dirname, './dist'),
+    path: resolve(__dirname, './dist'),
     filename: 'dist/clay-kiln-[name].js'
   },
   module: {
@@ -173,7 +174,7 @@ module.exports = {
     extensions: ['.js', '.json', '.vue'],
     alias: {
       vue$: 'vue/dist/vue.esm.js',
-      keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
+      keen: resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
       path: require.resolve('path-browserify')
