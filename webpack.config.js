@@ -75,7 +75,7 @@ module.exports = {
   },
   output: {
     path: resolve(__dirname, './dist'),
-    filename: 'dist/clay-kiln-[name].js'
+    filename: 'clay-kiln-[name].js'
   },
   module: {
     rules: [
