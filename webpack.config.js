@@ -23,7 +23,7 @@ class MyCompilationPlugin {
 
 const plugins = [
   new MiniCssExtractPlugin({
-    filename: 'dist/clay-kiln-[name].css'
+    filename: 'clay-kiln-[name].css'
   }),
   new VueLoaderPlugin(),
   new LodashModuleReplacementPlugin({
