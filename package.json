@@ -1,6 +1,6 @@
 {
   "name": "clay-kiln",
-  "version": "10.1.0+11",
+  "version": "10.1.0+12",
   "description": "Editor tools for Clay",
   "template": "template.handlebars",
   "scripts": {
@@ -92,6 +92,7 @@
     "clayhandlebars": "^5.0.1",
     "consolidate": "^1.0.4",
     "glob": "^11.0.0",
+    "node-polyfill-webpack-plugin": "^4.0.0",
     "sass": "^1.77.8",
     "xmldom": "^0.6.0"
   },
@@ -146,7 +147,7 @@
     "jest": "^23.1.0",
     "jest-serializer-vue": "^2.0.0",
     "jsdoc-to-markdown": "^3.0.1",
-    "keen-ui": "^1.0.2",
+    "keen-ui": "1.0.2",
     "keycode": "^2.1.8",
     "localforage": "^1.5.3",
     "lodash": "^4.17.4",
