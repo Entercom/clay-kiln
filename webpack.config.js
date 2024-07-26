@@ -7,8 +7,6 @@ const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
-
 const prod = process.argv.indexOf('production') !== -1;
 const kilnVersion = require('./package.json').version;
 
@@ -24,11 +22,9 @@ class MyCompilationPlugin {
 
 const plugins = [
   new MiniCssExtractPlugin({
-    filename: 'dist/clay-kiln-[name].css',
-    ignoreOrder: true,
+    filename: 'dist/clay-kiln-[name].css'
   }),
   new VueLoaderPlugin(),
-  new NodePolyfillPlugin(),
   new LodashModuleReplacementPlugin({
     shorthands: true,
     cloning: true,
@@ -43,7 +39,9 @@ const plugins = [
   }),
   new webpack.DefinePlugin({
     'process.env.KILN_VERSION': JSON.stringify(kilnVersion),
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'process.env.NODE_ENV': JSON.stringify(
+      process.env.NODE_ENV || 'production',
+    ),
     'process.env.LOG': '"trace"'
   }),
   new CleanWebpackPlugin(),
@@ -64,7 +62,7 @@ if (prod) {
 }
 
 module.exports = {
-  target: 'web',
+  target: 'node',
   node: {
     __filename: true,
     __dirname: true
@@ -75,8 +73,7 @@ module.exports = {
     'view-public': './view-public.js'
   },
   output: {
-    asyncChunks: true,
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, './dist'),
     filename: 'dist/clay-kiln-[name].js'
   },
   module: {
@@ -118,13 +115,7 @@ module.exports = {
               MiniCssExtractPlugin.loader,
               'css-loader',
               'postcss-loader',
-              {
-                loader: 'sass-loader',
-                options: {
-                  sourceMap: false,
-                  additionalData: '@import "./styleguide/keen-variables.scss";'
-                }
-              }
+              'sass-loader'
             ]
           }
         ]
@@ -185,35 +176,7 @@ module.exports = {
       keen: path.resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
-      worker_threads: false,
-      module: false,
-      fs: false,
-      net: false,
-      tls: false,
-      zlib: require.resolve('browserify-zlib'),
-      path: require.resolve('path-browserify'),
-      http: require.resolve('stream-http'),
-      https: require.resolve('https-browserify'),
-      stream: require.resolve('stream-browserify'),
-      crypto: require.resolve('crypto-browserify'),
-      path: require.resolve('path-browserify'),
-      domain: require.resolve('domain-browser'),
-      console: require.resolve('console-browserify'),
-      fs: false,
-      path: false,
-      zlib: false,
-      http: false,
-      https: false,
-      net: false,
-      tls: false,
-      child_process: false,
-      readline: false,
-      stream: false,
-      util: false,
-      async_hooks: false,
-      worker_threads: false,
-      module: false,
-      os: false
+      path: require.resolve('path-browserify')
     }
   }
 };

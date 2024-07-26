@@ -1,5 +1,6 @@
 <style lang="sass">
   @import '../../styleguide/colors';
+  @import '../../styleguide/typography';
 
   .page-history-list {
     padding: 0;

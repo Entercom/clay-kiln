@@ -2,6 +2,7 @@
   @import '../../styleguide/colors';
   @import '../../styleguide/layers';
   @import '../../styleguide/animations';
+  @import '../../styleguide/keen-variables';
 
   $overlay-margin: 10vh;
 
