@@ -72,7 +72,7 @@ async function run() {
       )
     }
 
-    if (await gitIsClean()) {
+    if (!await gitIsClean()) {
       exitWith(
         "it looks like your git repository isn't clean per 'git-is-clean'."
         + "  This check exists to make sure you don't accidentally publish"
