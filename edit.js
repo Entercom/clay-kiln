@@ -4,6 +4,8 @@ import Vue from 'vue';
 import NProgress from 'vue-nprogress';
 import keycode from 'keycode';
 import velocity from 'velocity-animate/velocity.min.js';
+import VueObserveVisibility from 'vue-observe-visibility';
+import VueClickOutside from 'vue-click-outside';
 import store from './lib/core-data/store';
 import { addSelectorButton } from './lib/utils/custom-buttons'; // eslint-disable-line
 import { add as addInput } from './lib/forms/inputs';
@@ -19,8 +21,6 @@ import { standardCurve } from './lib/utils/references';
 import { getLastEditUser } from './lib/utils/history';
 import 'keen-ui/src/bootstrap'; // import this once, for KeenUI components
 import 'velocity-animate/velocity.ui.min.js'; // import this once, for velocity ui stuff
-import VueObserveVisibility from 'vue-observe-visibility';
-import VueClickOutside from 'vue-click-outside';
 
 // set animation defaults
 velocity.defaults.easing = standardCurve;
@@ -46,7 +46,7 @@ const inputReq = require.context('./inputs', false, /\.vue$/),
 require.context('./styleguide', true, /^.*\.(scss|css)$/);
 
 // Add inputs
-inputReq.keys().forEach(function (key) {
+inputReq.keys().forEach((key) => {
   addInput(basename(key, extname(key)), inputReq(key));
 });
 
@@ -89,22 +89,33 @@ function isStuffOpen(store) {
     || _.get(store, 'state.ui.currentDrawer');
 }
 
-// kick off loading when DOM is ready
-// note: preloaded data, external inputs, decorators, and validation rules should already be added
-// when this event fires
-document.addEventListener('DOMContentLoaded', function () {
+/*
+ * kick off loading when DOM is ready
+ * note: preloaded data, external inputs, decorators, and validation rules should already be added
+ * when this event fires
+ */
+document.addEventListener('DOMContentLoaded', () => {
   let toolbar;
 
-  // init custom kiln plugins after utils is set (if they exist)
-  if (_.has(window, 'modules["kiln_index.kilnplugin"]')) {
-    const pluginInitializer = window.require('kiln_index.kilnplugin');
+  if (typeof _ === 'undefined') {
+    console.error('Lodash is not loaded');
+  } else {
+    // Check if the kiln plugin module exists in window.modules
+    if (_.has(window, 'modules["kiln_index.kilnplugin"]')) {
+      const pluginInitializer = window.require('kiln_index.kilnplugin');
 
-    pluginInitializer();
+      pluginInitializer();
+    } else {
+      console.error('kiln_index.kilnplugin module is not found in window.modules');
+    }
   }
 
   toolbar = require('./lib/toolbar/edit-toolbar.vue');
-  // instantiate toolbar on DOMContentLoaded, so custom buttons and modals can be
-  // added as child components to the toolbar and simple-modal
+
+  /*
+   * instantiate toolbar on DOMContentLoaded, so custom buttons and modals can be
+   * added as child components to the toolbar and simple-modal
+   */
 
   Vue.component('edit-toolbar', toolbar);
 
@@ -125,9 +136,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // add external plugins
   _.forOwn(window.kiln.plugins || {}, plugin => plugin(store));
 
-  // add `kiln-edit-mode` class to body. this allows certain components
-  // (e.g. embeds that rely on client-side js, which doesn't run in edit mode)
-  // to add special edit-mode-only styling
+  /*
+   * add `kiln-edit-mode` class to body. this allows certain components
+   * (e.g. embeds that rely on client-side js, which doesn't run in edit mode)
+   * to add special edit-mode-only styling
+   */
   document.body.classList.add('kiln-edit-mode');
 
   store.dispatch('preload')
@@ -171,15 +184,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (_.get(store, 'state.ui.currentFocus') && !hasClickedFocusableEl(e) && !window.kiln.isInvalidDrag) {
-      // always unfocus if clicking out of the current focus (and not directly clicking into another focusable el)
-      // note: isInvalidDrag is set when dragging to select text in a text/wysiwyg field,u
-      // since if you drag outside the form it'll trigger a click. ♥ browsers ♥
+      /*
+       * always unfocus if clicking out of the current focus (and not directly clicking into another focusable el)
+       * note: isInvalidDrag is set when dragging to select text in a text/wysiwyg field,u
+       * since if you drag outside the form it'll trigger a click. ♥ browsers ♥
+       */
       store.dispatch('unfocus').catch(_.noop);
     } else if (_.get(store, 'state.ui.currentAddComponentModal')) {
       store.dispatch('closeAddComponent');
     } else if (_.get(store, 'state.ui.currentSelection') && !hasClickedSelectableEl(e) && !window.kiln.isInvalidDrag) {
-      // unselect if clicking out of the current selection (if user isn't trying to select text)
-      // note: stopSelection is set in the 'select' action. see the comments there for details
+      /*
+       * unselect if clicking out of the current selection (if user isn't trying to select text)
+       * note: stopSelection is set in the 'select' action. see the comments there for details
+       */
       store.dispatch('unselect');
     }
 
@@ -187,11 +204,13 @@ document.addEventListener('DOMContentLoaded', function () {
     window.kiln.isInvalidDrag = false;
   });
 
-  // when ESC bubbles up to the document, close the current form or pane / unselect components
-  // navigate components when hitting ↑ / ↓ arrows (if there's a component selected)
-  // undo and redo with shortkey+z / shift+shortkey+z (e.g. Ctrl+z, Shift+Ctrl+z)
-  // display cheat sheet of all keyboard shortcuts with shift+?
-  // toggle the meta key with ctrl / left command
+  /*
+   * when ESC bubbles up to the document, close the current form or pane / unselect components
+   * navigate components when hitting ↑ / ↓ arrows (if there's a component selected)
+   * undo and redo with shortkey+z / shift+shortkey+z (e.g. Ctrl+z, Shift+Ctrl+z)
+   * display cheat sheet of all keyboard shortcuts with shift+?
+   * toggle the meta key with ctrl / left command
+   */
   /* eslint-disable complexity */
   document.body.addEventListener('keydown', (e) => {
     const key = keycode(e),
@@ -216,8 +235,10 @@ document.addEventListener('DOMContentLoaded', function () {
         type: 'keyboard'
       });
     } else if (key === 'esc') {
-      // pressing esc when forms are focused unfocuses them but does NOT unselect the component.
-      // press esc again to unselect a component
+      /*
+       * pressing esc when forms are focused unfocuses them but does NOT unselect the component.
+       * press esc again to unselect a component
+       */
       if (_.get(store, 'state.ui.currentFocus')) {
         store.dispatch('unfocus').catch(_.noop);
       } else if (_.get(store, 'state.ui.currentAddComponentModal')) {
@@ -226,8 +247,10 @@ document.addEventListener('DOMContentLoaded', function () {
         store.dispatch('unselect');
       }
     } else if (isShortKeyPressed) {
-      // pressing and holding meta key will unlock additional functionality,
-      // such as the ability to duplicate the selected component
+      /*
+       * pressing and holding meta key will unlock additional functionality,
+       * such as the ability to duplicate the selected component
+       */
       store.commit(META_PRESS);
     }
   });
@@ -253,11 +276,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  window.addEventListener('online', function () {
+  window.addEventListener('online', () => {
     store.dispatch('removeAlert', { type: 'error', text: connectionLostMessage, permanent: true });
   });
 
-  window.addEventListener('offline', function () {
+  window.addEventListener('offline', () => {
     store.dispatch('addAlert', { type: 'error', text: connectionLostMessage, permanent: true });
   });
 });
