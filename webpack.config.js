@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
 const { resolve } = require('path');
@@ -46,6 +47,7 @@ const plugins = [
     'process.env.LOG': '"trace"'
   }),
   new CleanWebpackPlugin(),
+  new NodePolyfillPlugin(),
   new HtmlWebpackPlugin(),
   new MyCompilationPlugin(),
   new webpack.optimize.ModuleConcatenationPlugin(),
@@ -177,7 +179,24 @@ module.exports = {
       keen: resolve(__dirname, 'node_modules/keen-ui/src')
     },
     fallback: {
-      path: require.resolve('path-browserify')
+      path: require.resolve('path-browserify'),
+      domain: require.resolve('domain-browser'),
+      console: require.resolve('console-browserify'),
+      fs: false,
+      path: false,
+      zlib: false,
+      http: false,
+      https: false,
+      net: false,
+      tls: false,
+      child_process: false,
+      readline: false,
+      stream: false,
+      util: false,
+      async_hooks: false,
+      worker_threads: false,
+      module: false,
+      os: false
     }
   }
 };
