@@ -63,7 +63,7 @@ if (prod) {
 }
 
 module.exports = {
-  target: 'node',
+  target: 'web',
   node: {
     __filename: true,
     __dirname: true
