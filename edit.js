@@ -95,20 +95,11 @@ function isStuffOpen(store) {
 document.addEventListener('DOMContentLoaded', function () {
   let toolbar;
 
-  if (typeof _ === 'undefined') {
-    console.error('Lodash is not loaded');
-  } else {
-    console.log('Lodash is loaded');
+  // init custom kiln plugins after utils is set (if they exist)
+  if (_.has(window, 'modules["kiln_index.kilnplugin"]')) {
+    const pluginInitializer = window.require('kiln_index.kilnplugin');
 
-    // Check if the kiln plugin module exists in window.modules
-    if (_.has(window, 'modules["kiln_index.kilnplugin"]')) {
-      console.log('kiln_index.kilnplugin module is found');
-      const pluginInitializer = window.require('kiln_index.kilnplugin');
-
-      pluginInitializer();
-    } else {
-      console.error('kiln_index.kilnplugin module is not found in window.modules');
-    }
+    pluginInitializer();
   }
 
   toolbar = require('./lib/toolbar/edit-toolbar.vue');
