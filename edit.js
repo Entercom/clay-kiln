@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (_.has(window, 'modules["kiln_index.kilnplugin"]')) {
       console.log('kiln_index.kilnplugin module is found');
       const pluginInitializer = window.require('kiln_index.kilnplugin');
+
       pluginInitializer();
     } else {
       console.error('kiln_index.kilnplugin module is not found in window.modules');
