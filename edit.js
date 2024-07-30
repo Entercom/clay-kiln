@@ -89,22 +89,13 @@ function isStuffOpen(store) {
     || _.get(store, 'state.ui.currentDrawer');
 }
 
-// kick off loading when DOM is ready
-// note: preloaded data, external inputs, decorators, and validation rules should already be added
-// when this event fires
-document.addEventListener('DOMContentLoaded', function () {
-  let toolbar;
+// Function to enable edit mode
+function enableEditMode() {
+  console.log('Edit mode detected');
+  document.body.classList.add('kiln-edit-mode');
 
-  // init custom kiln plugins after utils is set (if they exist)
-  if (_.has(window, 'modules["kiln_index.kilnplugin"]')) {
-    const pluginInitializer = window.require('kiln_index.kilnplugin');
-
-    pluginInitializer();
-  }
-
-  toolbar = require('./lib/toolbar/edit-toolbar.vue');
-  // instantiate toolbar on DOMContentLoaded, so custom buttons and modals can be
-  // added as child components to the toolbar and simple-modal
+  // Load necessary edit mode scripts and styles
+  const toolbar = require('./lib/toolbar/edit-toolbar.vue');
 
   Vue.component('edit-toolbar', toolbar);
 
@@ -119,24 +110,12 @@ document.addEventListener('DOMContentLoaded', function () {
     nprogress
   });
 
-  // page load indicator. will be finished by the preloader
-  store.dispatch('startProgress', 'offline');
-
-  // add external plugins
-  _.forOwn(window.kiln.plugins || {}, plugin => plugin(store));
-
-  // add `kiln-edit-mode` class to body. this allows certain components
-  // (e.g. embeds that rely on client-side js, which doesn't run in edit mode)
-  // to add special edit-mode-only styling
-  document.body.classList.add('kiln-edit-mode');
-
   store.dispatch('preload')
     .then(() => require('./lib/decorators').decorateAll())
     .then(() => store.dispatch('parseURLHash'))
     .then(() => store.dispatch('getList', 'new-pages'))
     .then(() => store.dispatch('getList', 'bookmarks'))
     .then(() => {
-      // collect new-pages IDs as a flattened array.
       const pageTemplateIds = _.get(store, 'state.lists[new-pages].items', [])
           .reduce((acc, { id, title, children }) => {
             acc.concat({ id, title }); // for non-nested lists
@@ -149,18 +128,23 @@ document.addEventListener('DOMContentLoaded', function () {
         lastEditUser = getLastEditUser(_.get(store, 'state.page.state'), _.get(store, 'state.user'));
 
       if (!navigator.onLine) {
-        // test connection loss on page load
         store.dispatch('addAlert', { type: 'error', text: connectionLostMessage, permanent: true });
       } else if (lastEditUser) {
-        // show message if another user has edited this page in the last 5 minutes
         store.dispatch('addAlert', { type: 'info', text: `Edited less than 5 minutes ago${lastEditUser.name ? ` by ${lastEditUser.name}` : ''}` });
       }
 
-      // display a status message if you're editing a page template
       if (currentPageTemplate) {
         store.dispatch('addAlert', { type: 'warning', text: `You are currently editing the "${currentPageTemplate.title}" template. Changes you make will be reflected on new pages that use this template.` });
       }
     });
+}
+
+// kick off loading when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+  // Check for edit mode query parameter
+  if (window.location.search.includes('edit=true')) {
+    enableEditMode();
+  }
 
   // when clicks bubble up to the document, close the current form or pane / unselect components
   document.body.addEventListener('click', (e) => {
@@ -171,53 +155,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (_.get(store, 'state.ui.currentFocus') && !hasClickedFocusableEl(e) && !window.kiln.isInvalidDrag) {
-      // always unfocus if clicking out of the current focus (and not directly clicking into another focusable el)
-      // note: isInvalidDrag is set when dragging to select text in a text/wysiwyg field,u
-      // since if you drag outside the form it'll trigger a click. ♥ browsers ♥
       store.dispatch('unfocus').catch(_.noop);
     } else if (_.get(store, 'state.ui.currentAddComponentModal')) {
       store.dispatch('closeAddComponent');
     } else if (_.get(store, 'state.ui.currentSelection') && !hasClickedSelectableEl(e) && !window.kiln.isInvalidDrag) {
-      // unselect if clicking out of the current selection (if user isn't trying to select text)
-      // note: stopSelection is set in the 'select' action. see the comments there for details
       store.dispatch('unselect');
     }
 
-    // unset isInvalidDrag after checking for unfocus / unselect
     window.kiln.isInvalidDrag = false;
   });
 
   // when ESC bubbles up to the document, close the current form or pane / unselect components
-  // navigate components when hitting ↑ / ↓ arrows (if there's a component selected)
-  // undo and redo with shortkey+z / shift+shortkey+z (e.g. Ctrl+z, Shift+Ctrl+z)
-  // display cheat sheet of all keyboard shortcuts with shift+?
-  // toggle the meta key with ctrl / left command
-  /* eslint-disable complexity */
   document.body.addEventListener('keydown', (e) => {
     const key = keycode(e),
       isShortKeyPressed = _.get(e, SHORTKEY, false);
 
     if (key === 'up' && !isStuffOpen(store)) {
-      // select the previous component
       store.dispatch('navigateComponents', 'prev');
     } else if (key === 'down' && !isStuffOpen(store)) {
-      // select the next component
       store.dispatch('navigateComponents', 'next');
     } else if (key === 'z' && isShortKeyPressed && e.shiftKey && !isStuffOpen(store)) {
-      // redo
       store.dispatch('redo');
     } else if (key === 'z' && isShortKeyPressed && !isStuffOpen(store)) {
-      // undo
       store.dispatch('undo');
     } else if (key === '/' && e.shiftKey === true && !isStuffOpen(store)) {
-      // cheat sheet
       store.dispatch('openModal', {
         title: 'Keyboard Shortcuts',
         type: 'keyboard'
       });
     } else if (key === 'esc') {
-      // pressing esc when forms are focused unfocuses them but does NOT unselect the component.
-      // press esc again to unselect a component
       if (_.get(store, 'state.ui.currentFocus')) {
         store.dispatch('unfocus').catch(_.noop);
       } else if (_.get(store, 'state.ui.currentAddComponentModal')) {
@@ -226,12 +192,9 @@ document.addEventListener('DOMContentLoaded', function () {
         store.dispatch('unselect');
       }
     } else if (isShortKeyPressed) {
-      // pressing and holding meta key will unlock additional functionality,
-      // such as the ability to duplicate the selected component
       store.commit(META_PRESS);
     }
   });
-  /* eslint-enable complexity */
 
   document.body.addEventListener('mousemove', _.debounce((e) => {
     if (_.get(store, 'state.ui.metaKey') && !e.ctrlKey && !e.metaKey) {
@@ -239,14 +202,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }), 100);
 
-  // when user stops pressing a key, toggle this off
   document.body.addEventListener('keyup', (e) => {
     if (_.get(e, SHORTKEY, false)) {
       store.commit(META_UNPRESS);
     }
   });
 
-  // when user tabs / clicks away from the page, toggle this off
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       store.commit(META_UNPRESS);
