@@ -1,6 +1,6 @@
 {
   "name": "clay-kiln",
-  "version": "10.1.0+21",
+  "version": "10.1.0+22",
   "description": "Editor tools for Clay",
   "template": "template.handlebars",
   "scripts": {
@@ -89,6 +89,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.24.8",
     "clayhandlebars": "^5.0.1",
     "consolidate": "^1.0.4",
+    "domain-browser": "^5.7.0",
     "glob": "^11.0.0",
     "node-polyfill-webpack-plugin": "^4.0.0",
     "sass": "^1.77.8",
