@@ -92,6 +92,7 @@ function isStuffOpen(store) {
 // kick off loading when DOM is ready
 // note: preloaded data, external inputs, decorators, and validation rules should already be added
 // when this event fires
+console.log('edit.js is loaded');
 document.addEventListener('DOMContentLoaded', function () {
   let toolbar;
 
