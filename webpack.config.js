@@ -24,7 +24,7 @@ class MyCompilationPlugin {
 
 const plugins = [
   new MiniCssExtractPlugin({
-    filename: 'dist/clay-kiln-[name].css',
+    filename: 'clay-kiln-[name].css',
     ignoreOrder: true
   }),
   new VueLoaderPlugin(),
@@ -96,7 +96,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'dist/clay-kiln-[name].js'
+    filename: 'clay-kiln-[name].js'
   },
   module: {
     rules: [
