@@ -24,7 +24,8 @@ class MyCompilationPlugin {
 
 const plugins = [
   new MiniCssExtractPlugin({
-    filename: 'clay-kiln-[name].css'
+    filename: 'clay-kiln-[name].css',
+    ignoreOrder: true
   }),
   new VueLoaderPlugin(),
   new LodashModuleReplacementPlugin({
@@ -108,7 +109,7 @@ module.exports = {
               'vue-style-loader',
               {
                 loader: 'css-loader',
-                options: { modules: true }
+                options: { modules: true, sourceMap: true }
               },
               'sass-loader'
             ]
