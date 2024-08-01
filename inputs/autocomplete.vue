@@ -17,6 +17,7 @@
   import _ from 'lodash';
   import item from './autocomplete-item.vue';
   import { getItemIndex, getProp } from '../lib/lists/helpers';
+  import Fuse from 'fuse.js';
 
   const MINIMUM_LENGTH_TO_MATCH = 2;
   const MAXIMUM_MATCHES = 20;
@@ -37,13 +38,17 @@
         return this.query.length >= MINIMUM_LENGTH_TO_MATCH && this.matches.length;
       },
       matches() {
+        const query = this.query || '';
         let matches;
 
         if (this.args.smartList) {
           matches = _.take(this.listItems, MAXIMUM_MATCHES);
-        } else {
-          const query = this.query || '';
+        } else if (this.args.fuzzy) {
+          // fuse returns the index of the match
+          const elements = new Fuse(this.listItems, { threshold: 0.4 }).search(query);
 
+          matches = elements.slice(0, 10).map((el) => this.listItems[el]);
+        } else {
           matches = _.take(_.filter(this.listItems, (option) => {
             return _.includes(option.toLowerCase(), query.toLowerCase());
           }), MAXIMUM_MATCHES);
